@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MathCloud Tutorial 4 – Learner Dashboard (Demo)</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+/* =====================
+   RESET & BASE
+===================== */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Inter', sans-serif;
+}
+
+body {
+  background: #f3f6ff;
+  color: #111827;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+/* =====================
+   HEADER
+===================== */
+header {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  background: #ffffff;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+}
+
+.header-inner {
+  max-width: 1300px;
+  margin: auto;
+  padding: 14px 5%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.logo img {
+  height: 80px;
+}
+
+.logo span {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #4338ca;
+}
+
+nav {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+nav a {
+  padding: 10px 18px;
+  border-radius: 10px;
+  background: #6366f1;
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 0.95rem;
+  transition: 0.3s;
+  box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+}
+
+nav a:hover {
+  background: #4f46e5;
+  transform: translateY(-2px);
+}
+
+/* =====================
+   HERO
+===================== */
+.hero {
+  background:
+    linear-gradient(rgba(67,56,202,0.75), rgba(67,56,202,0.75)),
+    url("https://images.unsplash.com/photo-1588072432836-e10032774350?auto=format&fit=crop&w=1600&q=80");
+  background-size: cover;
+  background-position: center;
+  padding: 100px 5%;
+}
+
+.hero-content {
+  max-width: 800px;
+  margin: auto;
+  text-align: center;
+  color: #ffffff;
+}
+
+.hero h1 {
+  font-size: clamp(2rem, 5vw, 3rem);
+  font-weight: 800;
+  margin-bottom: 20px;
+}
+
+.hero p {
+  font-size: 1.15rem;
+  line-height: 1.6;
+  opacity: 0.95;
+}
+
+/* =====================
+   DASHBOARD SECTION
+===================== */
+.dashboard-section {
+  padding: 80px 5% 100px;
+  max-width: 1200px;
+  margin: auto;
+}
+
+/* =====================
+   DEMO NOTICE
+===================== */
+.demo-notice {
+  background: #fef3c7;
+  border-left: 6px solid #f59e0b;
+  border-radius: 12px;
+  padding: 20px 25px;
+  text-align: center;
+  margin-bottom: 50px;
+  font-size: 1.1rem;
+  line-height: 1.6;
+}
+
+.demo-notice strong {
+  color: #b45309;
+}
+
+/* =====================
+   DASHBOARD CARDS
+===================== */
+.dashboard {
+  display: grid;
+  gap: 30px;
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 600px) {
+  .dashboard {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1000px) {
+  .dashboard {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* Cards */
+.card {
+  padding: 40px 24px;
+  border-radius: 26px;
+  text-align: center;
+  color: #ffffff;
+  font-weight: 600;
+  min-height: 260px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  transition: 0.4s;
+  box-shadow: 0 18px 30px rgba(0,0,0,0.25);
+}
+
+.card h3 {
+  font-size: 1.5rem;
+  margin-bottom: 14px;
+}
+
+.card p {
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.card span {
+  margin-top: 14px;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.card:hover {
+  transform: translateY(-12px) scale(1.03);
+  box-shadow: 0 30px 55px rgba(0,0,0,0.35);
+}
+
+/* Card Colors */
+.reading {
+  background: linear-gradient(135deg, #f97316, #fbbf24);
+}
+.comprehension {
+  background: linear-gradient(135deg, #10b981, #34d399);
+}
+.mathematics {
+  background: linear-gradient(135deg, #3b82f6, #60a5fa);
+}
+.spelling {
+  background: linear-gradient(135deg, #a855f7, #c084fc);
+}
+
+/* =====================
+   FOOTER
+===================== */
+footer {
+  background: #0f172a;
+  color: #cbd5f5;
+  padding: 50px 5%;
+  text-align: center;
+}
+
+footer a {
+  color: #facc15;
+  font-weight: 600;
+}
+
+footer a:hover {
+  text-decoration: underline;
+}
+
+/* =====================
+   MOBILE SAFETY
+===================== */
+@media (max-width: 700px) {
+  nav {
+    justify-content: center;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="header-inner">
+    <div class="logo">
+      <img src="logo.png" alt="MathCloud Logo">
+      <span>MathCloud</span>
+    </div>
+    <nav>
+      <a href="index.html">Home</a>
+      <a href="#dashboard">Dashboard</a>
+    </nav>
+  </div>
+</header>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-content">
+    <h1>MathCloud Learner Dashboard – Demo</h1>
+    <p>
+      <strong>To explore any platform, use the login details:</strong>
+      <br><strong>Email:</strong> demo@mathcloud.com
+      <br><strong>Password:</strong> Demo1234
+      <br>When you subscribe, you will get grade-level platforms tailored to your preferences.
+    </p>
+  </div>
+</section>
+
+<!-- DASHBOARD -->
+<section class="dashboard-section" id="dashboard">
+  <div class="dashboard">
+    <a href="fluency-reading-login.html" class="card reading">
+      <h3>Reading Fluency</h3>
+      <p>Improve speed, accuracy, and confidence.</p>
+      <span>Monthly activities</span>
+    </a>
+
+    <a href="student comprehension.html" class="card comprehension">
+      <h3>Comprehension</h3>
+      <p>Understand passages and answer questions clearly.</p>
+      <span>Updated monthly</span>
+    </a>
+
+    <a href="student quiz.html" class="card mathematics">
+      <h3>Mental Mathematics</h3>
+      <p>Build strong calculation and problem-solving skills.</p>
+      <span>Fresh challenges</span>
+    </a>
+
+    <a href="spelling.html" class="card spelling">
+      <h3>Spelling & Vocabulary</h3>
+      <p>Enhance spelling accuracy and word knowledge.</p>
+      <span>New lessons monthly</span>
+    </a>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <p>&copy; 2026 MathCloud Tutorial 4. All rights reserved.</p>
+  <p>
+    <a href="mailto:support@mathcloud.com">support@mathcloud.com</a> |
+    <a href="#">Privacy Policy</a>
+  </p>
+</footer>
+
+</body>
+</html>

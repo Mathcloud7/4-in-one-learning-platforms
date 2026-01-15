@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Fluency Readings</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --primary:#2563eb;
+  --bg:#f8fafc;
+  --card:#ffffff;
+  --text:#0f172a;
+  --muted:#64748b;
+  --shadow:0 6px 20px rgba(0,0,0,.06);
+}
+*{box-sizing:border-box;font-family:Inter,sans-serif}
+body{margin:0;background:var(--bg);color:var(--text)}
+
+nav{
+  background:#020617;
+  color:#fff;
+  padding:16px 28px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+
+nav button{
+  background:var(--primary);
+  border:none;
+  color:#fff;
+  padding:8px 14px;
+  border-radius:8px;
+  cursor:pointer;
+  font-size:14px;
+}
+
+main{
+  max-width:900px;
+  margin:30px auto;
+  padding:0 20px;
+}
+
+h2{
+  margin-bottom:6px;
+}
+
+#studentInfo{
+  color:var(--muted);
+  margin-bottom:20px;
+}
+
+.card{
+  background:var(--card);
+  border-radius:14px;
+  padding:18px 20px;
+  margin-bottom:16px;
+  box-shadow:var(--shadow);
+  cursor:pointer;
+  transition:transform .15s ease, box-shadow .15s ease;
+}
+
+.card:hover{
+  transform:translateY(-2px);
+  box-shadow:0 10px 28px rgba(0,0,0,.08);
+}
+
+.card h3{
+  margin:0 0 6px;
+  font-size:18px;
+}
+
+.card small{
+  color:var(--muted);
+}
+
+.empty{
+  background:var(--card);
+  padding:30px;
+  border-radius:14px;
+  text-align:center;
+  color:var(--muted);
+  box-shadow:var(--shadow);
+}
+
+footer{
+  text-align:center;
+  padding:24px;
+  font-size:13px;
+  color:var(--muted);
+}
+</style>
+</head>
+
+<body>
+
+<nav>
+  <h1>📘 My Fluency Readings</h1>
+  <button onclick="logout()">Logout</button>
+</nav>
+
+<main>
+  <h2>Assigned Readings</h2>
+  <div id="studentInfo"></div>
+  <div id="readingList"></div>
+</main>
+
+<footer>© 2026 MathCloud Tutorial</footer>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-database-compat.js"></script>
+
+<script>
+/* FIREBASE INIT */
+const firebaseConfig = {
+  apiKey: "AIzaSyB4DMYZJHWgbRUZV-uamOy7TpxLM1sGYPY",
+  authDomain: "chats-afcff.firebaseapp.com",
+  databaseURL: "https://chats-afcff-default-rtdb.firebaseio.com",
+  projectId: "chats-afcff",
+  storageBucket: "chats-afcff.firebasestorage.app",
+  messagingSenderId: "764250889947",
+  appId: "1:764250889947:web:2c843497ce389edf5876fe"
+};
+
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.database();
+
+/* DOM */
+const infoEl = document.getElementById("studentInfo");
+const listEl = document.getElementById("readingList");
+
+/* AUTH */
+auth.onAuthStateChanged(async user => {
+  if (!user) {
+    window.location.href = "login.html";
+    return;
+  }
+
+  const studentSnap = await db.ref("students/" + user.uid).once("value");
+  if (!studentSnap.exists()) {
+    infoEl.textContent = "Student profile not found.";
+    return;
+  }
+
+  const student = studentSnap.val();
+  infoEl.textContent = `Student: ${student.name} • Class: ${student.class}`;
+
+  loadReadings(user.uid, student.class);
+});
+
+/* LOAD READINGS */
+function loadReadings(uid, studentClass){
+  db.ref("fluency_passages").once("value").then(snap=>{
+    listEl.innerHTML = "";
+
+    if (!snap.exists()) {
+      listEl.innerHTML = `<div class="empty">No fluency readings assigned.</div>`;
+      return;
+    }
+
+    let found = false;
+
+    snap.forEach(child=>{
+      const p = child.val();
+      const id = child.key;
+
+      const assigned =
+        p.studentId === uid ||
+        (p.studentId === "" && p.class === studentClass);
+
+      if (assigned) {
+        found = true;
+
+        const card = document.createElement("div");
+        card.className = "card";
+
+        card.onclick = () => {
+          localStorage.setItem("selectedPassageId", id);
+          window.location.href = "reading-dashboard.html";
+        };
+
+        card.innerHTML = `
+          <h3>${p.title}</h3>
+          <small>Tap to begin reading</small>
+        `;
+
+        listEl.appendChild(card);
+      }
+    });
+
+    if (!found) {
+      listEl.innerHTML = `<div class="empty">No readings assigned to you yet.</div>`;
+    }
+  });
+}
+
+/* LOGOUT */
+function logout(){
+  auth.signOut().then(()=>{
+    window.location.href = "login.html";
+  });
+}
+</script>
+
+</body>
+</html>

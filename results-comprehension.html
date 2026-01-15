@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Comprehension Results Dashboard</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
+<style>
+:root{
+  --primary:#2563eb;
+  --secondary:#475569;
+  --bg:linear-gradient(135deg,#eef2ff,#f8fafc);
+  --card:#ffffff;
+  --success:#16a34a;
+  --danger:#dc2626;
+  --muted:#64748b;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:Inter,system-ui;
+  background:var(--bg);
+  color:#0f172a;
+}
+header{
+  background:linear-gradient(135deg,#0f172a,#1e40af);
+  color:#fff;
+  padding:22px 28px;
+  font-size:22px;
+  font-weight:800;
+  letter-spacing:.4px;
+  box-shadow:0 20px 40px rgba(0,0,0,.25);
+}
+.container{
+  max-width:1400px;
+  margin:auto;
+  padding:28px;
+}
+.card{
+  background:var(--card);
+  border-radius:20px;
+  padding:22px;
+  margin-bottom:22px;
+  box-shadow:
+    0 25px 50px rgba(0,0,0,.12),
+    inset 0 1px 0 rgba(255,255,255,.8);
+  animation:fadeUp .45s ease;
+}
+.hidden{display:none}
+
+/* 3D BUTTONS */
+button{
+  border:none;
+  border-radius:16px;
+  padding:12px 20px;
+  font-weight:700;
+  font-size:14px;
+  cursor:pointer;
+  transform:translateY(0);
+  transition:.18s ease;
+}
+button:active{transform:translateY(3px)}
+.primary{
+  background:linear-gradient(180deg,#3b82f6,#1d4ed8);
+  color:#fff;
+  box-shadow:0 8px 0 #1e40af;
+}
+.secondary{
+  background:linear-gradient(180deg,#64748b,#475569);
+  color:#fff;
+  box-shadow:0 8px 0 #334155;
+}
+.ghost{
+  background:#e5e7eb;
+  box-shadow:0 6px 0 #cbd5e1;
+}
+
+/* TABLE */
+table{width:100%;border-collapse:collapse;margin-top:10px}
+th,td{
+  padding:14px;
+  border-bottom:1px solid #e5e7eb;
+  text-align:left;
+}
+th{color:#334155}
+
+/* ANALYSIS */
+.analysis{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:16px;
+  margin:18px 0;
+}
+.analysis div{
+  background:#f1f5f9;
+  border-radius:18px;
+  padding:18px;
+  text-align:center;
+  font-weight:700;
+  box-shadow:inset 0 2px 6px rgba(0,0,0,.08);
+}
+
+/* ATTEMPTS */
+.attempt{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
+  padding:14px 16px;
+  border-radius:16px;
+  background:#f8fafc;
+  margin-bottom:10px;
+}
+.badge{
+  background:#dcfce7;
+  color:#166534;
+  padding:6px 12px;
+  border-radius:999px;
+  font-size:12px;
+  font-weight:800;
+}
+
+/* SCRIPT */
+.question{
+  background:#f8fafc;
+  border-radius:16px;
+  padding:18px;
+  margin-bottom:16px;
+}
+.option{
+  padding:12px;
+  border-radius:12px;
+  margin:8px 0;
+  font-weight:600;
+}
+.correct{background:#dcfce7;border:2px solid var(--success)}
+.wrong{background:#fee2e2;border:2px solid var(--danger)}
+.neutral{background:#e5e7eb}
+
+@keyframes fadeUp{
+  from{opacity:0;transform:translateY(18px)}
+  to{opacity:1;transform:none}
+}
+
+/* MODAL FOR SCRIPT */
+#scriptModal {
+  position: fixed;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+  background: rgba(15,23,42,0.8);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+#scriptModalContent {
+  background:#fff;
+  max-width:800px;
+  width:90%;
+  max-height:90%;
+  overflow-y:auto;
+  border-radius:20px;
+  padding:20px;
+  position: relative;
+  box-shadow:0 25px 50px rgba(0,0,0,.2);
+}
+#scriptModalClose {
+  position: absolute;
+  top:12px;
+  right:16px;
+  background:var(--danger);
+  color:#fff;
+  border:none;
+  border-radius:8px;
+  padding:6px 12px;
+  cursor:pointer;
+  font-weight:700;
+}
+</style>
+</head>
+
+<body>
+<header>Comprehension Results Dashboard</header>
+
+<div class="container">
+
+  <div class="card">
+    <strong>Filter by Class</strong><br><br>
+    <select id="classFilter" onchange="loadStudents()" style="padding:12px;border-radius:12px;font-weight:600">
+      <option value="">Select Class</option>
+    </select>
+  </div>
+
+  <div id="studentList" class="card hidden"></div>
+  <div id="studentDetails" class="card hidden"></div>
+
+</div>
+
+<!-- SCRIPT MODAL -->
+<div id="scriptModal">
+  <div id="scriptModalContent">
+    <button id="scriptModalClose" onclick="closeScriptModal()">Close</button>
+    <div id="scriptContent"></div>
+  </div>
+</div>
+
+<script>
+firebase.initializeApp({
+  apiKey:"AIzaSyB4DMYZJHWgbRUZV-uamOy7TpxLM1sGYPY",
+  databaseURL:"https://chats-afcff-default-rtdb.firebaseio.com"
+});
+
+const db=firebase.database();
+const classFilter=document.getElementById("classFilter");
+const studentList=document.getElementById("studentList");
+const studentDetails=document.getElementById("studentDetails");
+
+let comprehensionCache={};
+
+/* Load comprehensions */
+db.ref("readingComprehensions").once("value",s=>{
+  s.forEach(c=>comprehensionCache[c.key]=c.val());
+});
+
+/* Load classes */
+db.ref("students").once("value",s=>{
+  const set=new Set();
+  s.forEach(st=>st.val().class && set.add(st.val().class));
+  [...set].sort().forEach(c=>classFilter.innerHTML+=`<option>${c}</option>`);
+});
+
+/* Students */
+function loadStudents(){
+  studentDetails.classList.add("hidden");
+  studentList.classList.remove("hidden");
+  studentList.innerHTML="<h2>Students</h2>";
+
+  db.ref("students").orderByChild("class").equalTo(classFilter.value).once("value",s=>{
+    let html="<table><tr><th>Name</th><th></th></tr>";
+    s.forEach(st=>{
+      html+=`
+        <tr>
+          <td>${st.val().name}</td>
+          <td><button class="primary" onclick="viewStudent('${st.key}','${st.val().name}')">View</button></td>
+        </tr>`;
+    });
+    studentList.innerHTML+=html+"</table>";
+  });
+}
+
+/* Student details */
+function viewStudent(id,name){
+  studentList.classList.add("hidden");
+  studentDetails.classList.remove("hidden");
+  studentDetails.innerHTML=`<button class="ghost" onclick="back()">← Back</button><h2>${name}</h2>`;
+
+  db.ref(`comprehensionResults/${id}`).once("value",s=>{
+    let attempts=0,correct=0,total=0,best=0;
+    let html="";
+
+    s.forEach(comp=>{
+      const compTitle=comprehensionCache[comp.key]?.title||"Untitled Comprehension";
+      let arr=[];
+      comp.forEach(a=>{
+        const v=a.val();
+        const c=v.analysis?.correctCount ?? v.score ?? 0;
+        const t=v.total ?? 0;
+        const p=t?Math.round(c/t*100):0;
+        attempts++; correct+=c; total+=t; best=Math.max(best,p);
+        arr.push({...v,percent:p});
+      });
+      arr.sort((a,b)=>b.percent-a.percent);
+
+      html+=`<h3>${compTitle}</h3>`;
+      arr.forEach((a,i)=>{
+        html+=`
+          <div class="attempt">
+            <div>
+              ${i===0?'<span class="badge">BEST</span><br>':''}
+              ${a.score||0}/${a.total||0} (${a.percent}%)
+            </div>
+            <button class="secondary" onclick='viewScript(${JSON.stringify(a)},"${comp.key}")'>View Script</button>
+          </div>`;
+      });
+    });
+
+    studentDetails.innerHTML+=`
+      <div class="analysis">
+        <div>Total Attempts<br>${attempts}</div>
+        <div>Best Score<br>${best}%</div>
+        <div>Accuracy<br>${total?Math.round(correct/total*100):0}%</div>
+      </div>
+      ${html}`;
+  });
+}
+
+/* Script modal functions */
+function viewScript(attempt,compId){
+  const qs=comprehensionCache[compId]?.questions||[];
+  if(!Array.isArray(attempt.answers)){
+    document.getElementById("scriptContent").innerHTML="<div class='card'>No script recorded.</div>";
+  } else {
+    let html="<div class='card'><h3>Completed Script</h3>";
+    attempt.answers.forEach((a,i)=>{
+      const q=qs[i]||{};
+      const opts={A:q.OptionA,B:q.OptionB,C:q.OptionC,D:q.OptionD};
+      html+=`<div class="question"><strong>Q${i+1}: ${q.Question||a.question||"Question unavailable"}</strong>`;
+      ["A","B","C","D"].forEach(o=>{
+        let cls="option neutral";
+        if(o===a.correct) cls="option correct";
+        if(o===a.selected && o!==a.correct) cls="option wrong";
+        html+=`<div class="${cls}"><strong>${o}.</strong> ${opts[o]||"—"}</div>`;
+      });
+      html+="</div>";
+    });
+    html+="</div>";
+    document.getElementById("scriptContent").innerHTML = html;
+  }
+  document.getElementById("scriptModal").style.display = "flex";
+}
+
+function closeScriptModal(){
+  document.getElementById("scriptModal").style.display = "none";
+}
+
+function back(){
+  studentDetails.classList.add("hidden");
+  studentList.classList.remove("hidden");
+}
+</script>
+</body>
+</html>

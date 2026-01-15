@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Fluency Reading – Passage Creator</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --primary:#2563eb;
+  --danger:#dc2626;
+  --warning:#f59e0b;
+  --bg:#f1f5f9;
+  --card:#ffffff;
+  --text:#0f172a;
+  --muted:#64748b;
+}
+
+*{box-sizing:border-box;font-family:Inter,sans-serif}
+body{margin:0;background:var(--bg);color:var(--text)}
+
+nav{
+  background:#020617;
+  color:#fff;
+  padding:16px 28px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+nav h1{margin:0;font-size:18px;font-weight:600}
+
+main{
+  max-width:1200px;
+  margin:32px auto;
+  padding:0 20px;
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:360px 1fr;
+  gap:24px;
+}
+
+.card{
+  background:var(--card);
+  border-radius:14px;
+  padding:20px;
+  box-shadow:0 10px 30px rgba(0,0,0,.05);
+}
+
+.card h2{
+  margin:0 0 16px;
+  font-size:16px;
+  font-weight:600;
+}
+
+label{
+  display:block;
+  font-size:13px;
+  margin-bottom:6px;
+  color:var(--muted);
+}
+
+input,select,textarea{
+  width:100%;
+  padding:10px 12px;
+  border-radius:8px;
+  border:1px solid #cbd5f5;
+  margin-bottom:14px;
+  font-size:14px;
+}
+
+textarea{
+  min-height:150px;
+  resize:vertical;
+}
+
+button{
+  padding:10px 14px;
+  border-radius:8px;
+  border:none;
+  font-size:14px;
+  cursor:pointer;
+}
+
+.primary{background:var(--primary);color:#fff}
+.secondary{background:#e5e7eb}
+.warning{background:var(--warning);color:#fff}
+.danger{background:var(--danger);color:#fff}
+
+button:disabled{opacity:.6;cursor:not-allowed}
+
+.status{
+  margin-top:10px;
+  font-size:13px;
+}
+.success{color:#16a34a}
+.error{color:#dc2626}
+
+table{
+  width:100%;
+  border-collapse:collapse;
+}
+th,td{
+  padding:12px;
+  border-bottom:1px solid #e5e7eb;
+  font-size:14px;
+}
+th{text-align:left;color:var(--muted);font-weight:500}
+
+.actions button{
+  margin-right:6px;
+  font-size:12px;
+}
+
+footer{
+  text-align:center;
+  padding:20px;
+  color:var(--muted);
+  font-size:13px;
+}
+
+@media(max-width:900px){
+  .grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+
+<body>
+
+<nav>
+  <h1>📘 Teacher Dashboard</h1>
+  <span>Fluency Reading Passages</span>
+</nav>
+
+<main>
+
+<div class="grid">
+
+<!-- FORM -->
+<div class="card">
+  <h2 id="formTitle">Create Passage</h2>
+
+  <label>Title</label>
+  <input id="titleInput" placeholder="Enter passage title" />
+
+  <label>Assign To</label>
+  <select id="classSelect">
+    <option value="">Select Class</option>
+    <option value="all">All Classes</option>
+  </select>
+
+  <label>Student (Optional)</label>
+  <select id="studentSelect">
+    <option value="">Whole Class</option>
+  </select>
+
+  <label>Passage Content</label>
+  <textarea id="passageInput" placeholder="Type or paste the passage here..."></textarea>
+
+  <button id="submitBtn" class="primary">Create Passage</button>
+  <button id="cancelBtn" class="secondary" style="display:none">Cancel</button>
+
+  <div id="status" class="status"></div>
+</div>
+
+<!-- LIST -->
+<div class="card">
+  <h2>Passages</h2>
+
+  <select id="classFilter">
+    <option value="">All Classes</option>
+  </select>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Title</th>
+        <th>Class</th>
+        <th>Student</th>
+        <th>Created</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody id="passagesTable"></tbody>
+  </table>
+</div>
+
+</div>
+
+</main>
+
+<footer>© 2026 Orli International Academy</footer>
+
+<!-- FIREBASE -->
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-database-compat.js"></script>
+
+<script>
+/* FIREBASE INIT */
+const firebaseConfig = {
+  apiKey: "AIzaSyB4DMYZJHWgbRUZV-uamOy7TpxLM1sGYPY",
+  authDomain: "chats-afcff.firebaseapp.com",
+  databaseURL: "https://chats-afcff-default-rtdb.firebaseio.com",
+  projectId: "chats-afcff",
+  storageBucket: "chats-afcff.firebasestorage.app",
+  messagingSenderId: "764250889947",
+  appId: "1:764250889947:web:2c843497ce389edf5876fe"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+/* DOM ELEMENTS */
+const titleEl = document.getElementById("titleInput");
+const classSel = document.getElementById("classSelect");
+const studentSel = document.getElementById("studentSelect");
+const passageEl = document.getElementById("passageInput");
+const tableEl = document.getElementById("passagesTable");
+const filterEl = document.getElementById("classFilter");
+const statusEl = document.getElementById("status");
+const submitBtn = document.getElementById("submitBtn");
+const cancelBtn = document.getElementById("cancelBtn");
+const formTitle = document.getElementById("formTitle");
+
+let editingId = null;
+let classStudents = {}; // cache of students per class
+
+/* LOAD CLASSES & STUDENTS */
+db.ref("students").once("value").then(snap=>{
+  const classes=new Set();
+  snap.forEach(st=>{
+    const s=st.val();
+    if(s.class){
+      classes.add(s.class);
+      if(!classStudents[s.class]) classStudents[s.class]=[];
+      classStudents[s.class].push({id:st.key, name:s.name});
+    }
+  });
+  classes.forEach(c=>{
+    classSel.innerHTML+=`<option value="${c}">${c}</option>`;
+    filterEl.innerHTML+=`<option value="${c}">${c}</option>`;
+  });
+});
+
+/* DYNAMIC STUDENT LIST */
+classSel.onchange = ()=>{
+  studentSel.innerHTML='<option value="">Whole Class</option>';
+  const c = classSel.value;
+  if(classStudents[c]){
+    classStudents[c].forEach(st=>{
+      studentSel.innerHTML+=`<option value="${st.id}">${st.name}</option>`;
+    });
+  }
+};
+
+/* CREATE / UPDATE */
+submitBtn.onclick = async ()=>{
+  statusEl.textContent="";
+  if(!titleEl.value.trim() || !classSel.value.trim() || !passageEl.value.trim()){
+    statusEl.textContent="All required fields must be filled.";
+    statusEl.className="status error";
+    return;
+  }
+
+  try{
+    const data={
+      title:titleEl.value,
+      class:classSel.value==="all"?"All Classes":classSel.value,
+      studentId:studentSel.value || "",
+      studentName:studentSel.selectedOptions[0]?.text || "Whole Class",
+      passage:passageEl.value,
+      createdAt:Date.now()
+    };
+
+    if(editingId){
+      await db.ref("fluency_passages/"+editingId).update(data);
+      statusEl.textContent="Passage updated successfully.";
+      statusEl.className="status success";
+      resetForm();
+    }else{
+      const id=db.ref("fluency_passages").push().key;
+      await db.ref("fluency_passages/"+id).set(data);
+      statusEl.textContent="Passage created successfully.";
+      statusEl.className="status success";
+      resetForm();
+    }
+  }catch(e){
+    statusEl.textContent=e.message;
+    statusEl.className="status error";
+  }
+};
+
+cancelBtn.onclick=resetForm;
+function resetForm(){
+  editingId=null;
+  titleEl.value=classSel.value=passageEl.value="";
+  studentSel.innerHTML='<option value="">Whole Class</option>';
+  submitBtn.textContent="Create Passage";
+  formTitle.textContent="Create Passage";
+  cancelBtn.style.display="none";
+}
+
+/* REALTIME LISTENER */
+db.ref("fluency_passages").on("value",snap=>{
+  tableEl.innerHTML="";
+  snap.forEach(c=>{
+    const s=c.val(), id=c.key;
+    if(!filterEl.value || filterEl.value===s.class){
+      const date=new Date(s.createdAt).toLocaleDateString();
+      tableEl.innerHTML+=`
+      <tr>
+        <td>${s.title}</td>
+        <td>${s.class}</td>
+        <td>${s.studentName}</td>
+        <td>${date}</td>
+        <td class="actions">
+          <button class="warning" onclick="edit('${id}')">Edit</button>
+          <button class="danger" onclick="removePassage('${id}')">Delete</button>
+        </td>
+      </tr>`;
+    }
+  });
+});
+
+filterEl.onchange=()=>db.ref("fluency_passages").once("value");
+
+/* EDIT */
+window.edit = id=>{
+  db.ref("fluency_passages/"+id).once("value").then(s=>{
+    const d=s.val();
+    titleEl.value=d.title;
+    classSel.value=d.class==="All Classes"?"all":d.class;
+    classSel.onchange(); // refresh student list
+    studentSel.value=d.studentId || "";
+    passageEl.value=d.passage;
+    submitBtn.textContent="Update Passage";
+    formTitle.textContent="Edit Passage";
+    cancelBtn.style.display="inline-block";
+    editingId=id;
+  });
+};
+
+/* DELETE */
+window.removePassage = id=>{
+  if(confirm("Delete this passage?")){
+    db.ref("fluency_passages/"+id).remove();
+  }
+};
+</script>
+
+</body>
+</html>

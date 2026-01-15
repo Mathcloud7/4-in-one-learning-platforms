@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Teacher Dashboard – Quiz Management</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+<style>
+:root{
+  --primary:#2563eb;
+  --danger:#dc2626;
+  --bg:#f1f5f9;
+  --card:#ffffff;
+  --text:#0f172a;
+  --muted:#64748b;
+}
+*{box-sizing:border-box;font-family:Inter,sans-serif}
+body{margin:0;background:var(--bg);color:var(--text)}
+
+nav{
+  background:#020617;
+  color:#fff;
+  padding:16px 28px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+
+main{max-width:1200px;margin:32px auto;padding:0 20px}
+
+.grid{display:grid;grid-template-columns:380px 1fr;gap:24px}
+
+.card{
+  background:var(--card);
+  border-radius:14px;
+  padding:20px;
+  box-shadow:0 10px 30px rgba(0,0,0,.05);
+}
+
+label{font-size:13px;color:var(--muted);display:block;margin-bottom:6px}
+input,select{
+  width:100%;
+  padding:10px;
+  border-radius:8px;
+  border:1px solid #cbd5f5;
+  margin-bottom:14px;
+}
+
+button{
+  padding:10px 14px;
+  border-radius:8px;
+  border:none;
+  cursor:pointer;
+}
+
+.primary{background:var(--primary);color:#fff}
+.danger{background:var(--danger);color:#fff}
+
+table{width:100%;border-collapse:collapse}
+th,td{padding:12px;border-bottom:1px solid #e5e7eb;font-size:14px}
+th{color:var(--muted);text-align:left}
+
+.actions button{font-size:12px}
+.hidden{display:none}
+
+@media(max-width:900px){
+  .grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+
+<body>
+
+<nav>
+  <strong>📘 Teacher Dashboard</strong>
+  <span>Quiz Management</span>
+</nav>
+
+<main>
+<div class="grid">
+
+<!-- CREATE QUIZ -->
+<div class="card">
+  <h3>Create Quiz</h3>
+
+  <label>Quiz Title</label>
+  <input id="titleInput">
+
+  <label>Target</label>
+  <select id="targetType">
+    <option value="class">Whole Class</option>
+    <option value="student">Specific Student</option>
+  </select>
+
+  <label>Class</label>
+  <select id="classSelect">
+    <option value="">Loading classes...</option>
+  </select>
+
+  <div id="studentBox" class="hidden">
+    <label>Student</label>
+    <select id="studentSelect">
+      <option value="">Select Student</option>
+    </select>
+  </div>
+
+  <label>Upload Excel Questions</label>
+  <input type="file" id="excelInput" accept=".xlsx">
+
+  <a href="#" onclick="downloadTemplate()">⬇ Download Excel Template</a><br><br>
+
+  <button class="primary" onclick="createQuiz()">Create Quiz</button>
+</div>
+
+<!-- QUIZ LIST -->
+<div class="card">
+  <h3>All Quizzes</h3>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Title</th>
+        <th>Target</th>
+        <th>Class</th>
+        <th>Questions</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody id="quizTable"></tbody>
+  </table>
+</div>
+
+</div>
+</main>
+
+<!-- FIREBASE SDKs (ORDER MATTERS) -->
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-database-compat.js"></script>
+
+<script>
+/* ================= FIREBASE INIT (FIXED) ================= */
+const firebaseConfig = {
+  apiKey: "AIzaSyB4DMYZJHWgbRUZV-uamOy7TpxLM1sGYPY",
+  authDomain: "chats-afcff.firebaseapp.com",
+  databaseURL: "https://chats-afcff-default-rtdb.firebaseio.com",
+  projectId: "chats-afcff",
+  appId: "1:764250889947:web:2c843497ce389edf5876fe"
+};
+
+if (!firebase.apps.length) {
+  firebase.initializeApp(firebaseConfig);
+}
+
+const db = firebase.database();
+
+/* ================= DOM ================= */
+const classSelect = document.getElementById("classSelect");
+const studentSelect = document.getElementById("studentSelect");
+const studentBox = document.getElementById("studentBox");
+const targetType = document.getElementById("targetType");
+const quizTable = document.getElementById("quizTable");
+const titleInput = document.getElementById("titleInput");
+const excelInput = document.getElementById("excelInput");
+
+/* ================= LOAD CLASSES ================= */
+function loadClasses(){
+  db.ref("students").once("value", snap=>{
+    const classes = new Set();
+    classSelect.innerHTML = '<option value="">Select Class</option>';
+
+    snap.forEach(s=>{
+      if(s.val().class) classes.add(s.val().class);
+    });
+
+    classes.forEach(c=>{
+      classSelect.innerHTML += `<option value="${c}">${c}</option>`;
+    });
+  });
+}
+loadClasses();
+
+/* ================= TARGET TOGGLE ================= */
+targetType.onchange = ()=>{
+  studentBox.classList.toggle("hidden", targetType.value !== "student");
+  studentSelect.innerHTML = '<option value="">Select Student</option>';
+};
+
+/* ================= LOAD STUDENTS ================= */
+classSelect.onchange = ()=>{
+  studentSelect.innerHTML = '<option value="">Select Student</option>';
+  if(targetType.value !== "student" || !classSelect.value) return;
+
+  db.ref("students")
+    .orderByChild("class")
+    .equalTo(classSelect.value)
+    .once("value", snap=>{
+      snap.forEach(s=>{
+        studentSelect.innerHTML += `<option value="${s.key}">${s.val().name}</option>`;
+      });
+    });
+};
+
+/* ================= EXCEL TEMPLATE ================= */
+function downloadTemplate(){
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.json_to_sheet([
+    {question:"", optionA:"", optionB:"", optionC:"", optionD:"", correct:"A"}
+  ]);
+  XLSX.utils.book_append_sheet(wb, ws, "Questions");
+  XLSX.writeFile(wb, "quiz-template.xlsx");
+}
+
+/* ================= CREATE QUIZ ================= */
+function createQuiz(){
+  if(!titleInput.value) return alert("Enter quiz title");
+  if(!classSelect.value) return alert("Select class");
+  if(targetType.value==="student" && !studentSelect.value) return alert("Select student");
+  if(!excelInput.files[0]) return alert("Upload Excel file");
+
+  const reader = new FileReader();
+  reader.onload = async e=>{
+    const wb = XLSX.read(new Uint8Array(e.target.result), {type:"array"});
+    const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
+
+    const questions = {};
+    rows.forEach(r=>{
+      questions[db.ref().push().key] = r;
+    });
+
+    await db.ref("quizzes").push({
+      title: titleInput.value,
+      targetType: targetType.value,
+      className: classSelect.value,
+      studentId: targetType.value==="student" ? studentSelect.value : null,
+      createdAt: Date.now(),
+      questions
+    });
+
+    alert("Quiz created successfully");
+    titleInput.value = "";
+    excelInput.value = "";
+    studentSelect.innerHTML = '<option value="">Select Student</option>';
+  };
+
+  reader.readAsArrayBuffer(excelInput.files[0]);
+}
+
+/* ================= LIST QUIZZES ================= */
+db.ref("quizzes").on("value", snap=>{
+  quizTable.innerHTML = "";
+
+  snap.forEach(q=>{
+    const d = q.val();
+    quizTable.innerHTML += `
+      <tr>
+        <td>${d.title}</td>
+        <td>${d.targetType}</td>
+        <td>${d.className}</td>
+        <td>${Object.keys(d.questions||{}).length}</td>
+        <td class="actions">
+          <button class="danger" onclick="deleteQuiz('${q.key}')">Delete</button>
+        </td>
+      </tr>`;
+  });
+});
+
+/* ================= DELETE QUIZ ================= */
+function deleteQuiz(id){
+  if(confirm("Delete this quiz?")){
+    db.ref("quizzes/"+id).remove();
+  }
+}
+</script>
+
+</body>
+</html>

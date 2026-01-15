@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MathCloud Tutorial 4 - Subscription</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* Base Reset */
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',sans-serif;}
+body{background:#e0e7ff;color:#111;scroll-behavior:smooth;}
+a{text-decoration:none;color:inherit;}
+button{cursor:pointer;}
+
+/* Header */
+header{
+  background: linear-gradient(90deg,#6366f1,#4f46e5);
+  color:white;
+  padding:20px 5%;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  flex-wrap:wrap;
+}
+header .logo{font-size:1.8rem;font-weight:700;}
+nav a{
+  margin:5px 10px;
+  font-weight:600;
+  padding:8px 16px;
+  background:#fbbf24;
+  border-radius:8px;
+  color:#111;
+  text-shadow:1px 1px 0 rgba(0,0,0,0.2);
+  box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+  transition:0.3s;
+}
+nav a:hover{
+  background:#fcd34d;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 8px rgba(0,0,0,0.25);
+}
+
+/* Hero */
+.hero{
+  background: linear-gradient(135deg,#818cf8,#6366f1);
+  padding:80px 5%;
+  border-radius:0 0 50px 50px;
+  text-align:center;
+  color:white;
+}
+.hero h1{font-size:2.5rem;margin-bottom:15px;}
+.hero p{font-size:1.2rem;line-height:1.5;}
+
+/* Form Section */
+.form-section{
+  padding:50px 5%;
+  max-width:700px;
+  margin:50px auto;
+  background: rgba(255,255,255,0.15);
+  backdrop-filter: blur(15px);
+  border-radius:25px;
+  border:1px solid rgba(255,255,255,0.2);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+}
+.form-section h2{text-align:center;color:#4f46e5;margin-bottom:30px;font-size:2rem;}
+.form-group{
+  display:flex;
+  flex-direction:column;
+  margin-bottom:20px;
+}
+.form-group label{margin-bottom:8px;font-weight:600;}
+.form-group input, .form-group select{
+  padding:12px 15px;
+  border-radius:10px;
+  border:1px solid #ccc;
+  font-size:1rem;
+  transition:0.3s;
+}
+.form-group input:focus, .form-group select:focus{outline:none;border-color:#6366f1;box-shadow:0 0 5px rgba(99,102,241,0.5);}
+.submit-btn{
+  width:100%;
+  padding:15px;
+  font-size:1rem;
+  font-weight:600;
+  border:none;
+  border-radius:12px;
+  background:#4f46e5;
+  color:white;
+  transition:0.3s;
+  cursor:pointer;
+}
+.submit-btn:hover{background:#6366f1;}
+
+/* Footer */
+footer{
+  background:#111827;
+  color:#d1d5db;
+  padding:50px 5%;
+  text-align:center;
+}
+footer a{color:#facc15; transition:0.3s;}
+footer a:hover{color:#fde68a;}
+
+/* Responsive */
+@media(max-width:768px){
+  .hero h1{font-size:2rem;}
+  .hero p{font-size:1rem;}
+}
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<header>
+  <div class="logo">MathCloud Tutorial 4</div>
+  <nav>
+    <a href="index.html">Home</a>
+    <a href="#form-section">Subscribe</a>
+  </nav>
+</header>
+
+<!-- Hero -->
+<section class="hero">
+  <h1>Subscribe to MathCloud Tutorial 4</h1>
+  <p>Fill the form below to secure your child’s access to grade-level activities aligned to global standards. Once submitted, a formatted message will be sent via WhatsApp to our subscription team.</p>
+</section>
+
+<!-- Form Section -->
+<section class="form-section" id="form-section">
+  <h2>Subscription Form</h2>
+  <form id="subscriptionForm">
+    <div class="form-group">
+      <label for="learnerName">Learner Name</label>
+      <input type="text" id="learnerName" name="learnerName" required>
+    </div>
+    <div class="form-group">
+      <label for="learnerClass">Learner Class</label>
+      <input type="text" id="learnerClass" name="learnerClass" required>
+    </div>
+    <div class="form-group">
+      <label for="learnerBirthday">Learner Birthday</label>
+      <input type="date" id="learnerBirthday" name="learnerBirthday" required>
+    </div>
+    <div class="form-group">
+      <label for="learnerSex">Sex</label>
+      <select id="learnerSex" name="learnerSex" required>
+        <option value="" disabled selected>Select</option>
+        <option value="Male">Male</option>
+        <option value="Female">Female</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="parentEmail">Parent Email</label>
+      <input type="email" id="parentEmail" name="parentEmail" required>
+    </div>
+    <div class="form-group">
+      <label for="curriculum">Curriculum</label>
+      <select id="curriculum" name="curriculum" required>
+        <option value="" disabled selected>Select</option>
+        <option value="American">American</option>
+        <option value="British">British</option>
+        <option value="Nigerian">Nigerian</option>
+        <option value="Specify">Please specify</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="numberOfLearners">Number of Learners</label>
+      <input type="number" id="numberOfLearners" name="numberOfLearners" min="1" required>
+    </div>
+    <button type="submit" class="submit-btn">Submit via WhatsApp</button>
+  </form>
+</section>
+
+<!-- Footer -->
+<footer>
+  <p>&copy; 2026 MathCloud Tutorial 4. All rights reserved.</p>
+  <p>Contact us: <a href="mailto:support@mathcloud.com">support@mathcloud.com</a></p>
+</footer>
+
+<!-- JS to send formatted message via WhatsApp -->
+<script>
+document.getElementById('subscriptionForm').addEventListener('submit', function(e){
+  e.preventDefault();
+  const name = document.getElementById('learnerName').value;
+  const learnerClass = document.getElementById('learnerClass').value;
+  const birthday = document.getElementById('learnerBirthday').value;
+  const sex = document.getElementById('learnerSex').value;
+  const email = document.getElementById('parentEmail').value;
+  const curriculum = document.getElementById('curriculum').value;
+  const numLearners = document.getElementById('numberOfLearners').value;
+
+  const message = `*MathCloud Tutorial 4 Subscription*\n\n` +
+                  `*Learner Name:* ${name}\n` +
+                  `*Class:* ${learnerClass}\n` +
+                  `*Birthday:* ${birthday}\n` +
+                  `*Sex:* ${sex}\n` +
+                  `*Parent Email:* ${email}\n` +
+                  `*Curriculum:* ${curriculum}\n` +
+                  `*Number of Learners:* ${numLearners}\n\n` +
+                  `Please process this subscription.`;
+
+  const whatsappURL = `https://wa.me/2348102341648?text=${encodeURIComponent(message)}`;
+  window.open(whatsappURL, '_blank');
+});
+</script>
+
+</body>
+</html>

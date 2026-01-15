@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reading Comprehension Manager</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+<style>
+body{font-family:Inter;background:#f4f7fb;margin:0}
+header{background:#003366;color:#fff;padding:16px;font-size:20px;font-weight:600;text-align:center}
+.container{max-width:1100px;margin:25px auto;background:#fff;padding:25px;border-radius:10px;box-shadow:0 2px 10px rgba(0,0,0,.08)}
+label{font-weight:500;margin-top:12px;display:block}
+select,input[type=file]{width:100%;padding:10px;border-radius:6px;border:1px solid #ccc;margin-top:6px}
+button{padding:10px 16px;border:none;border-radius:6px;background:#003366;color:#fff;margin-top:15px;cursor:pointer}
+button:hover{opacity:.9}
+table{width:100%;border-collapse:collapse;margin-top:25px}
+th,td{padding:12px;border-bottom:1px solid #ddd;text-align:left}
+th{background:#f0f4fa}
+.actions button{margin-right:6px}
+.success{color:green;font-weight:500}
+.error{color:red;font-weight:500}
+
+/* Modal */
+.modal{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center}
+.modal-content{background:#fff;width:90%;max-width:900px;max-height:90vh;overflow:auto;padding:20px;border-radius:10px}
+.close{float:right;font-size:20px;color:red;cursor:pointer}
+.question{margin-top:15px;padding:12px;background:#f7f9fc;border-radius:8px}
+.correct{color:green;font-weight:600}
+</style>
+</head>
+
+<body>
+
+<header>Reading Comprehension Management</header>
+
+<div class="container">
+
+<button onclick="downloadTemplate()">Download Excel Template</button>
+
+<label>Assign To</label>
+<select id="targetType">
+<option value="class">Whole Class</option>
+<option value="student">Single Student</option>
+</select>
+
+<label id="classLabel">Select Class</label>
+<select id="classSelect"></select>
+
+<label id="studentLabel" style="display:none">Select Student</label>
+<select id="studentSelect" style="display:none"></select>
+
+<label>Upload Excel File</label>
+<input type="file" id="excelFile" accept=".xlsx,.xls,.ods">
+
+<button id="uploadBtn">Upload Comprehension</button>
+<div id="status"></div>
+
+<h3 style="margin-top:40px">Uploaded Comprehensions</h3>
+
+<table>
+<thead>
+<tr>
+<th>Title</th>
+<th>Assigned To</th>
+<th>Upload Time</th>
+<th>Actions</th>
+</tr>
+</thead>
+<tbody id="list"></tbody>
+</table>
+
+</div>
+
+<!-- Preview Modal -->
+<div class="modal" id="previewModal">
+  <div class="modal-content">
+    <span class="close" onclick="closePreview()">✖</span>
+    <h3>Teacher Preview</h3>
+    <div id="previewBody"></div>
+  </div>
+</div>
+
+<script>
+/* ================= FIREBASE ================= */
+firebase.initializeApp({
+  apiKey: "AIzaSyB4DMYZJHWgbRUZV-uamOy7TpxLM1sGYPY",
+  authDomain: "chats-afcff.firebaseapp.com",
+  databaseURL: "https://chats-afcff-default-rtdb.firebaseio.com",
+  projectId: "chats-afcff"
+});
+const db = firebase.database();
+
+/* ================= GLOBALS ================= */
+const REQUIRED_HEADERS=["Passage","Question","OptionA","OptionB","OptionC","OptionD","CorrectAnswer"];
+const students={};
+const classes=new Set();
+
+/* ================= DOM ================= */
+const targetType=document.getElementById("targetType");
+const classSelect=document.getElementById("classSelect");
+const studentSelect=document.getElementById("studentSelect");
+const classLabel=document.getElementById("classLabel");
+const studentLabel=document.getElementById("studentLabel");
+const excelFile=document.getElementById("excelFile");
+const statusEl=document.getElementById("status");
+const list=document.getElementById("list");
+const previewModal=document.getElementById("previewModal");
+const previewBody=document.getElementById("previewBody");
+
+/* ================= LOAD STUDENTS ================= */
+db.ref("students").on("value",snap=>{
+  classes.clear();
+  classSelect.innerHTML="";
+  studentSelect.innerHTML="";
+  snap.forEach(c=>{
+    const v=c.val();
+    students[c.key]=v;
+    if(v.class) classes.add(v.class);
+  });
+  classes.forEach(cls=>{
+    classSelect.innerHTML+=`<option value="${cls}">${cls}</option>`;
+  });
+  Object.entries(students).forEach(([id,s])=>{
+    studentSelect.innerHTML+=`<option value="${id}">${s.name} (${s.class})</option>`;
+  });
+});
+
+/* ================= TOGGLE ================= */
+targetType.onchange=()=>{
+  const isClass=targetType.value==="class";
+  classLabel.style.display=isClass?"block":"none";
+  classSelect.style.display=isClass?"block":"none";
+  studentLabel.style.display=isClass?"none":"block";
+  studentSelect.style.display=isClass?"none":"block";
+};
+
+/* ================= VALIDATE EXCEL ================= */
+function validExcel(rows){
+  return rows.length && REQUIRED_HEADERS.every(h=>rows[0].hasOwnProperty(h));
+}
+
+/* ================= UPLOAD ================= */
+uploadBtn.onclick=()=>{
+  const file=excelFile.files[0];
+  if(!file){alert("Select Excel file");return;}
+
+  const reader=new FileReader();
+  reader.onload=e=>{
+    const wb=XLSX.read(new Uint8Array(e.target.result),{type:"array"});
+    const sheet=wb.Sheets[wb.SheetNames[0]];
+    const rows=XLSX.utils.sheet_to_json(sheet,{defval:""});
+
+    if(!validExcel(rows)){
+      statusEl.textContent="Invalid Excel format. Use the provided template.";
+      statusEl.className="error";
+      return;
+    }
+
+    db.ref("readingComprehensions").push({
+      title:file.name,
+      type:targetType.value,
+      target:targetType.value==="class"?classSelect.value:studentSelect.value,
+      questions:rows,
+      createdAt:firebase.database.ServerValue.TIMESTAMP
+    });
+
+    statusEl.textContent="Upload successful";
+    statusEl.className="success";
+    excelFile.value="";
+  };
+  reader.readAsArrayBuffer(file);
+};
+
+/* ================= LIST ================= */
+db.ref("readingComprehensions").on("value",snap=>{
+  list.innerHTML="";
+  snap.forEach(c=>{
+    const v=c.val();
+    const assigned=v.type==="class"
+      ? v.target
+      : students[v.target]?.name || "Unknown Student";
+
+    list.innerHTML+=`
+      <tr>
+        <td>${v.title}</td>
+        <td>${assigned}</td>
+        <td>${new Date(v.createdAt).toLocaleString()}</td>
+        <td class="actions">
+          <button onclick="preview('${c.key}')">Preview</button>
+          <button onclick="replaceExcel('${c.key}')">Edit</button>
+          <button style="background:red" onclick="deleteItem('${c.key}')">Delete</button>
+        </td>
+      </tr>`;
+  });
+});
+
+/* ================= PREVIEW ================= */
+window.preview=id=>{
+  db.ref("readingComprehensions/"+id).once("value").then(s=>{
+    previewBody.innerHTML="";
+    s.val().questions.forEach((r,i)=>{
+      previewBody.innerHTML+=`
+        <div class="question">
+          <strong>Passage:</strong> ${r.Passage}<br><br>
+          <strong>Q${i+1}:</strong> ${r.Question}<br>
+          A. ${r.OptionA}<br>
+          B. ${r.OptionB}<br>
+          C. ${r.OptionC}<br>
+          D. ${r.OptionD}<br>
+          <span class="correct">Correct Answer: ${r.CorrectAnswer}</span>
+        </div>`;
+    });
+    previewModal.style.display="flex";
+  });
+};
+function closePreview(){previewModal.style.display="none";}
+
+/* ================= EDIT ================= */
+window.replaceExcel=id=>{
+  const input=document.createElement("input");
+  input.type="file";
+  input.accept=".xlsx,.xls,.ods";
+  input.onchange=()=>{
+    const reader=new FileReader();
+    reader.onload=e=>{
+      const wb=XLSX.read(new Uint8Array(e.target.result),{type:"array"});
+      const sheet=wb.Sheets[wb.SheetNames[0]];
+      const rows=XLSX.utils.sheet_to_json(sheet,{defval:""});
+      if(!validExcel(rows)){alert("Invalid Excel format");return;}
+      db.ref("readingComprehensions/"+id+"/questions").set(rows);
+    };
+    reader.readAsArrayBuffer(input.files[0]);
+  };
+  input.click();
+};
+
+/* ================= DELETE ================= */
+window.deleteItem=id=>{
+  if(confirm("Delete this comprehension?")){
+    db.ref("readingComprehensions/"+id).remove();
+  }
+};
+
+/* ================= TEMPLATE ================= */
+function downloadTemplate(){
+  const data=[{
+    Passage:"Sample passage text",
+    Question:"Sample question?",
+    OptionA:"Option A",
+    OptionB:"Option B",
+    OptionC:"Option C",
+    OptionD:"Option D",
+    CorrectAnswer:"A"
+  }];
+  const ws=XLSX.utils.json_to_sheet(data);
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,"Comprehension");
+  XLSX.writeFile(wb,"Reading_Comprehension_Template.xlsx");
+}
+</script>
+
+</body>
+</html>

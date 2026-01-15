@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reading Dashboard</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --primary:#2563eb;
+  --success:#16a34a;
+  --danger:#dc2626;
+  --bg:#f8fafc;
+  --card:#ffffff;
+  --text:#0f172a;
+  --muted:#64748b;
+  --shadow:0 6px 20px rgba(0,0,0,.06);
+}
+*{box-sizing:border-box;font-family:Inter,sans-serif}
+body{margin:0;background:var(--bg);color:var(--text)}
+
+nav{
+  background:#020617;
+  color:#fff;
+  padding:16px 28px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+nav button{
+  background:var(--primary);
+  border:none;
+  color:#fff;
+  padding:8px 14px;
+  border-radius:8px;
+  cursor:pointer;
+}
+
+main{
+  max-width:900px;
+  margin:30px auto;
+  background:var(--card);
+  border-radius:16px;
+  padding:26px;
+  box-shadow:var(--shadow);
+}
+
+#passage{
+  margin:20px 0;
+  padding:18px;
+  background:#f1f5f9;
+  border-radius:12px;
+  line-height:1.7;
+}
+
+.controls{
+  display:flex;
+  gap:12px;
+  margin:16px 0;
+}
+.controls button{
+  flex:1;
+  padding:12px;
+  font-size:15px;
+  border:none;
+  border-radius:10px;
+  cursor:pointer;
+}
+.start{background:var(--success);color:#fff}
+.stop{background:var(--danger);color:#fff}
+
+.stats{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+  gap:14px;
+  margin-top:20px;
+}
+.stat{
+  background:#f8fafc;
+  border-radius:12px;
+  padding:14px;
+  text-align:center;
+}
+.stat strong{font-size:20px}
+
+.history{
+  margin-top:30px;
+}
+.history-item{
+  padding:12px;
+  border-bottom:1px solid #e5e7eb;
+}
+.best{
+  background:#dcfce7;
+  border-radius:12px;
+  padding:14px;
+  margin-bottom:16px;
+}
+
+footer{
+  text-align:center;
+  padding:24px;
+  font-size:13px;
+  color:var(--muted);
+}
+</style>
+</head>
+
+<body>
+
+<nav>
+  <h1>Reading Dashboard</h1>
+  <button onclick="location.href='fluency-reading.html'">Back</button>
+</nav>
+
+<main>
+  <h2 id="title">Loading…</h2>
+  <small id="studentInfo"></small>
+
+  <div id="passage"></div>
+
+  <div class="controls">
+    <button class="start" onclick="startReading()">Start Reading</button>
+    <button class="stop" onclick="stopReading()">Stop</button>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><strong id="time">0</strong><br>Seconds</div>
+    <div class="stat"><strong id="wpm">0</strong><br>WPM</div>
+    <div class="stat"><strong id="accuracy">0%</strong><br>Accuracy</div>
+    <div class="stat"><strong id="speed">0%</strong><br>Speed</div>
+    <div class="stat"><strong id="overall">0%</strong><br>Overall</div>
+  </div>
+
+  <div class="history">
+    <h3>Reading History</h3>
+    <input type="date" id="filterDate" onchange="loadResults()">
+    <div id="results"></div>
+  </div>
+</main>
+
+<footer>© 2026 Orli International Academy</footer>
+
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-database-compat.js"></script>
+
+<script>
+firebase.initializeApp({
+  apiKey: "AIzaSyB4DMYZJHWgbRUZV-uamOy7TpxLM1sGYPY",
+  authDomain: "chats-afcff.firebaseapp.com",
+  databaseURL: "https://chats-afcff-default-rtdb.firebaseio.com",
+  projectId: "chats-afcff"
+});
+
+const TARGET_WPM = 120;
+let recognition, words=[], spokenWords=[], startTime, timer;
+const $ = id => document.getElementById(id);
+
+firebase.auth().onAuthStateChanged(async user=>{
+  const student = (await firebase.database().ref("students/"+user.uid).once("value")).val();
+  $("studentInfo").textContent = `${student.name} • ${student.class}`;
+
+  const pid = localStorage.getItem("selectedPassageId");
+  const passage = (await firebase.database().ref("fluency_passages/"+pid).once("value")).val();
+  $("title").textContent = passage.title;
+  $("passage").textContent = passage.passage;
+
+  words = passage.passage.toLowerCase().replace(/[^\w\s]/g,"").split(/\s+/);
+
+  loadResults();
+});
+
+/* SPEECH */
+function startReading(){
+  spokenWords=[];
+  startTime=Date.now();
+  $("time").textContent=0;
+
+  const SR = window.SpeechRecognition||window.webkitSpeechRecognition;
+  recognition=new SR();
+  recognition.continuous=true;
+  recognition.interimResults=true;
+
+  recognition.onresult=e=>{
+    let t="";
+    for(let i=e.resultIndex;i<e.results.length;i++) t+=e.results[i][0].transcript;
+    spokenWords=t.toLowerCase().replace(/[^\w\s]/g,"").split(/\s+/);
+    calculateScores();
+  };
+
+  recognition.start();
+  timer=setInterval(()=>$("time").textContent=Math.floor((Date.now()-startTime)/1000),1000);
+}
+
+function stopReading(){
+  if(recognition) recognition.stop();
+  clearInterval(timer);
+  calculateScores(true);
+}
+
+/* SCORING + SAVE */
+function calculateScores(final=false){
+  const elapsed=(Date.now()-startTime)/1000;
+  if(elapsed<1) return;
+
+  let correct=0;
+  for(let i=0;i<spokenWords.length&&i<words.length;i++){
+    if(spokenWords[i]===words[i]) correct++;
+  }
+
+  const wpm=Math.round((spokenWords.length/elapsed)*60);
+  const accuracy=Math.round((correct/words.length)*100);
+  const speed=Math.min(Math.round((wpm/TARGET_WPM)*100),100);
+  const overall=Math.round(accuracy*0.7+speed*0.3);
+
+  $("wpm").textContent=wpm;
+  $("accuracy").textContent=accuracy+"%";
+  $("speed").textContent=speed+"%";
+  $("overall").textContent=overall+"%";
+
+  if(final){
+    const now=new Date();
+    const uid=firebase.auth().currentUser.uid;
+    const pid=localStorage.getItem("selectedPassageId");
+
+    firebase.database().ref(`fluency_results/${uid}/${pid}`).push({
+      wpm,accuracy,speed,overall,
+      time:Math.round(elapsed),
+      createdAt:now.getTime(),
+      date:now.toISOString().split("T")[0]
+    }).then(loadResults);
+  }
+}
+
+/* HISTORY */
+async function loadResults(){
+  const uid=firebase.auth().currentUser.uid;
+  const pid=localStorage.getItem("selectedPassageId");
+  const filter=$("filterDate").value;
+
+  const snap=await firebase.database().ref(`fluency_results/${uid}/${pid}`).once("value");
+  if(!snap.exists()){
+    $("results").innerHTML="<p>No results yet.</p>";
+    return;
+  }
+
+  let data=Object.values(snap.val());
+  if(filter) data=data.filter(r=>r.date===filter);
+  data.sort((a,b)=>b.overall-a.overall);
+
+  let html=`<div class="best">🏆 <strong>Best Result</strong><br>
+  Overall ${data[0].overall}% • WPM ${data[0].wpm} • Accuracy ${data[0].accuracy}%</div>`;
+
+  data.forEach(r=>{
+    html+=`<div class="history-item">
+      <strong>${r.overall}%</strong> — WPM ${r.wpm}, Accuracy ${r.accuracy}%
+      <br><small>${new Date(r.createdAt).toLocaleString()}</small>
+    </div>`;
+  });
+
+  $("results").innerHTML=html;
+}
+</script>
+
+</body>
+</html>

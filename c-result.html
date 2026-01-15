@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MathCloud Tutorial 4 - All-in-One Learning</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* Base Reset */
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',sans-serif;}
+body{background:#e0e7ff;color:#111;scroll-behavior:smooth;}
+a{text-decoration:none;color:inherit;}
+button{cursor:pointer;}
+
+/* Header with 3D nav buttons */
+header{
+  background: linear-gradient(90deg,#6366f1,#4f46e5);
+  color:white;
+  padding:20px 5%;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  flex-wrap:wrap;
+  position:sticky;
+  top:0;
+  z-index:100;
+}
+header .logo{font-size:1.8rem;font-weight:700;}
+nav{display:flex;flex-wrap:wrap;}
+nav a{
+  margin:5px 10px;
+  font-weight:600;
+  padding:8px 16px;
+  background:#fbbf24;
+  border-radius:8px;
+  color:#111;
+  text-shadow:1px 1px 0 rgba(0,0,0,0.2);
+  box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+  transition:0.3s;
+}
+nav a:hover{
+  background:#fcd34d;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 8px rgba(0,0,0,0.25);
+}
+
+/* Hero Section */
+.hero{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  padding:100px 5% 80px 5%;
+  background: linear-gradient(135deg,#818cf8,#6366f1);
+  color:white;
+  border-radius:0 0 50px 50px;
+  overflow:hidden;
+}
+.hero h1{
+  font-size:3rem;
+  margin-bottom:20px;
+  animation:fadeDown 1s ease forwards;
+}
+.hero p{
+  font-size:1.3rem;
+  margin-bottom:30px;
+  line-height:1.5;
+  animation:fadeUp 1s ease forwards;
+}
+.hero span{
+  font-weight:700;
+  color:#facc15;
+}
+.hero button{
+  padding:15px 40px;
+  font-size:1rem;
+  font-weight:600;
+  border:none;
+  border-radius:12px;
+  background:#facc15;
+  color:#111;
+  cursor:pointer;
+  transition:0.3s;
+  animation:fadeUp 1.2s ease forwards;
+}
+.hero button:hover{background:#fcd34d;}
+
+/* Section Titles */
+.section-title{
+  text-align:center;
+  font-size:2rem;
+  margin-bottom:50px;
+  color:#4f46e5;
+  font-weight:700;
+}
+
+/* Platforms */
+.platforms{
+  display:grid;
+  grid-template-columns:1fr;
+  gap:30px;
+  padding:50px 5%;
+}
+@media(min-width:600px){.platforms{grid-template-columns:repeat(2,1fr);}}
+@media(min-width:900px){.platforms{grid-template-columns:repeat(4,1fr);}}
+
+.platform-card{
+  background: rgba(255,255,255,0.1);
+  backdrop-filter:blur(15px);
+  border-radius:20px;
+  border:1px solid rgba(255,255,255,0.2);
+  padding:30px;
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+  transition: transform 0.4s, box-shadow 0.4s;
+}
+.platform-card:hover{
+  transform: translateY(-10px);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+}
+.platform-card h3{
+  font-size:1.5rem;
+  margin-bottom:15px;
+  color:#facc15;
+}
+.platform-card p{
+  margin-bottom:20px;
+  line-height:1.5;
+}
+.platform-card span{
+  font-weight:700;
+  color:#4f46e5;
+}
+.platform-card a.button{
+  align-self:center;
+  padding:12px 25px;
+  font-weight:600;
+  border:none;
+  border-radius:10px;
+  background:#4f46e5;
+  color:white;
+  transition:0.3s;
+  text-decoration:none;
+  text-align:center;
+}
+.platform-card a.button:hover{background:#6366f1;}
+
+/* Subscription Section */
+.subscription{
+  padding:80px 5%;
+  background: linear-gradient(135deg,#f0f0f0,#e5e7ff);
+  border-radius:25px;
+  text-align:center;
+  margin:50px 0;
+}
+.subscription h2{font-size:2rem; margin-bottom:20px; color:#4f46e5;}
+.subscription p{font-size:1.15rem; margin-bottom:30px; line-height:1.6;}
+.subscription span{font-weight:700; color:#4f46e5;}
+.subscription a.button{
+  padding:15px 40px;
+  font-size:1rem;
+  font-weight:600;
+  border:none;
+  border-radius:12px;
+  background:#4f46e5;
+  color:white;
+  transition:0.3s;
+  display:inline-block;
+  text-decoration:none;
+}
+.subscription a.button:hover{background:#6366f1;}
+
+/* Pricing */
+.pricing{
+  display:grid;
+  grid-template-columns:1fr;
+  gap:30px;
+  margin-top:40px;
+}
+@media(min-width:600px){.pricing{grid-template-columns:repeat(2,1fr);}}
+.pricing-card{
+  background: rgba(255,255,255,0.15);
+  backdrop-filter:blur(15px);
+  border-radius:20px;
+  border:1px solid rgba(255,255,255,0.2);
+  padding:30px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  transition: transform 0.4s, box-shadow 0.4s;
+}
+.pricing-card:hover{
+  transform: translateY(-8px);
+  box-shadow:0 20px 40px rgba(0,0,0,0.15);
+}
+.pricing-card h3{color:#facc15;font-size:1.6rem;margin-bottom:15px;}
+.pricing-card p{margin-bottom:15px;line-height:1.4;}
+.pricing-card a.button{width:100%;padding:12px 0;text-decoration:none;text-align:center;display:inline-block;background:#4f46e5;color:white;border-radius:10px;font-weight:600;}
+.pricing-card a.button:hover{background:#6366f1;}
+
+/* Reports Section */
+.reports{
+  background: rgba(255,255,255,0.1);
+  backdrop-filter:blur(12px);
+  border-radius:25px;
+  padding:50px 5%;
+  margin-bottom:50px;
+  text-align:center;
+}
+.reports p{font-size:1.1rem; line-height:1.6;}
+.reports span{font-weight:700; color:#4f46e5;}
+
+/* Footer */
+footer{
+  background:#111827;
+  color:#d1d5db;
+  padding:50px 5%;
+  text-align:center;
+}
+footer a{color:#facc15; transition:0.3s;}
+footer a:hover{color:#fde68a;}
+
+/* Animations */
+@keyframes fadeDown{0%{opacity:0; transform:translateY(-40px);}100%{opacity:1; transform:translateY(0);}}
+@keyframes fadeUp{0%{opacity:0; transform:translateY(40px);}100%{opacity:1; transform:translateY(0);}}
+
+/* Responsive */
+@media(max-width:768px){
+  header{flex-direction:column;text-align:center;}
+  nav{margin-top:10px;}
+  .hero h1{font-size:2rem;}
+  .hero p{font-size:1rem;}
+  .subscription a.button{width:80%;}
+}
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<header>
+  <div class="logo">MathCloud Tutorial 4</div>
+  <nav>
+    <a href="#platforms">Platforms</a>
+    <a href="#subscription">Subscribe</a>
+    <a href="#footer">Contact</a>
+  </nav>
+</header>
+
+<!-- Hero -->
+<section class="hero">
+  <h1>Transform Your Child’s Learning Experience</h1>
+  <p>
+    Reading Fluency, Comprehension, Mental Math, Spelling & Vocabulary—all structured activities for 12 months. 
+    <span>New grade-level activities from different curricula aligned to global standards are delivered every month!</span>
+  </p>
+  <a href="subscribe.html" class="button">Subscribe Now</a>
+</section>
+
+<!-- Platforms -->
+<section id="platforms" class="platforms">
+  <div class="platform-card">
+    <h3>Reading Fluency</h3>
+    <p>
+      Interactive exercises improve reading speed, accuracy, and confidence. 
+      <span>Activities are grade-level appropriate and updated monthly according to global standards.</span>
+    </p>
+    <a href="subscribe.html" class="button">Explore Demo</a>
+  </div>
+  <div class="platform-card">
+    <h3>Comprehension</h3>
+    <p>
+      Guided questions, passage analysis, and games strengthen understanding. 
+      <span>New curriculum-aligned exercises delivered every month.</span>
+    </p>
+    <a href="subscribe.html" class="button">Explore Demo</a>
+  </div>
+  <div class="platform-card">
+    <h3>Mental Math</h3>
+    <p>
+      Timed challenges enhance calculation speed and problem-solving skills. 
+      <span>Monthly grade-level tasks from global standards keep learners engaged.</span>
+    </p>
+    <a href="subscribe.html" class="button">Explore Demo</a>
+  </div>
+  <div class="platform-card">
+    <h3>Spelling & Vocabulary</h3>
+    <p>
+      Expand vocabulary and spelling through interactive lessons. 
+      <span>Activities updated monthly according to learners' grade and international benchmarks.</span>
+    </p>
+    <a href="subscribe.html" class="button">Explore Demo</a>
+  </div>
+</section>
+
+<!-- Subscription -->
+<section id="subscription" class="subscription">
+  <h2>Flexible Subscription Plans</h2>
+  <p>
+    Parents receive detailed monthly progress reports and recommendations. 
+    <span>Learners receive new grade-level activities from different curricula aligned to global standards every month across all platforms for 12 months!</span>
+  </p>
+  <div class="pricing">
+    <div class="pricing-card">
+      <h3>Individual Child</h3>
+      <p>One child, 12 months access with monthly activities and reports.</p>
+      <p>Cost: <strong>₦50,000</strong></p>
+      <a href="subscribe.html" class="button">Subscribe</a>
+    </div>
+    <div class="pricing-card">
+      <h3>Family Bundle</h3>
+      <p>Up to 4 children, 12 months each. Monthly activities included for all!</p>
+      <p>Cost: <strong>₦100,000</strong></p>
+      <a href="subscribe.html" class="button">Subscribe</a>
+    </div>
+  </div>
+</section>
+
+<!-- Reports -->
+<section class="reports">
+  <p>
+    Parents receive comprehensive monthly progress reports with actionable recommendations. 
+    <span>Every month, learners get new curriculum-aligned activities tailored to their grade level and international standards.</span>
+  </p>
+</section>
+
+<!-- Footer -->
+<footer id="footer">
+  <p>&copy; 2026 MathCloud Tutorial 4. All rights reserved.</p>
+  <p>Contact us: <a href="mailto:support@mathcloud.com">support@mathcloud.com</a> | <a href="#">Privacy Policy</a></p>
+</footer>
+
+</body>
+</html>

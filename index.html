@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>MathCloud Tutorial 4 – All-in-One Learning</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+/* =====================
+   RESET & BASE
+===================== */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Inter', sans-serif;
+}
+
+body {
+  background: #f3f6ff;
+  color: #111827;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+/* =====================
+   HEADER
+===================== */
+header {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  background: #ffffff;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+}
+
+.header-inner {
+  max-width: 1300px;
+  margin: auto;
+  padding: 16px 5%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.logo img {
+  height: 60px;
+}
+
+.logo span {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: #4338ca;
+}
+
+nav {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+nav a {
+  padding: 10px 18px;
+  border-radius: 10px;
+  background: #6366f1;
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 0.95rem;
+  transition: 0.3s;
+  box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+}
+
+nav a:hover {
+  background: #4f46e5;
+  transform: translateY(-2px);
+}
+
+/* =====================
+   HERO
+===================== */
+.hero {
+  background:
+    linear-gradient(rgba(67,56,202,0.8), rgba(67,56,202,0.8)),
+    url("https://images.unsplash.com/photo-1588072432836-e10032774350?auto=format&fit=crop&w=1600&q=80");
+  background-size: cover;
+  background-position: center;
+  padding: 120px 5% 110px;
+}
+
+.hero-content {
+  max-width: 900px;
+  margin: auto;
+  text-align: center;
+  color: #ffffff;
+}
+
+.hero h1 {
+  font-size: clamp(2.2rem, 5vw, 3.2rem);
+  font-weight: 800;
+  margin-bottom: 20px;
+}
+
+.hero p {
+  font-size: 1.2rem;
+  line-height: 1.6;
+  margin-bottom: 30px;
+}
+
+.hero span {
+  color: #facc15;
+  font-weight: 700;
+}
+
+.hero .cta {
+  display: inline-block;
+  padding: 16px 42px;
+  background: #facc15;
+  color: #111827;
+  font-weight: 700;
+  border-radius: 14px;
+  transition: 0.3s;
+}
+
+.hero .cta:hover {
+  background: #fde047;
+  transform: translateY(-2px);
+}
+
+/* =====================
+   STATISTICS
+===================== */
+.statistics {
+  max-width: 1100px;
+  margin: 60px auto;
+  display: flex;
+  justify-content: space-around;
+  text-align: center;
+  gap: 30px;
+  flex-wrap: wrap;
+}
+
+.stat-card {
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 30px 25px;
+  flex: 1 1 150px;
+  box-shadow: 0 12px 25px rgba(0,0,0,0.1);
+}
+
+.stat-card h3 {
+  font-size: 2rem;
+  color: #4338ca;
+  margin-bottom: 8px;
+}
+
+.stat-card p {
+  font-size: 1rem;
+  color: #111827;
+}
+
+/* =====================
+   TESTIMONIALS
+===================== */
+.testimonials {
+  max-width: 1200px;
+  margin: 80px auto;
+  text-align: center;
+}
+
+.testimonials h2 {
+  font-size: 2.2rem;
+  color: #4338ca;
+  margin-bottom: 60px;
+}
+
+.testimonial-cards {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 30px;
+}
+
+.testimonial-card {
+  background: #ffffff;
+  border-radius: 26px;
+  padding: 40px 30px;
+  box-shadow: 0 18px 30px rgba(0,0,0,0.15);
+  transition: 0.3s;
+}
+
+.testimonial-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 25px 45px rgba(0,0,0,0.2);
+}
+
+.testimonial-card p {
+  font-size: 1rem;
+  line-height: 1.6;
+  margin-bottom: 15px;
+}
+
+.testimonial-card span {
+  font-weight: 700;
+  color: #6366f1;
+}
+
+@media(min-width: 700px) {
+  .testimonial-cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media(min-width: 1000px) {
+  .testimonial-cards {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* =====================
+   SECTION WRAPPER
+===================== */
+.section {
+  padding: 90px 5%;
+}
+
+.section-title {
+  text-align: center;
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: #4338ca;
+  margin-bottom: 60px;
+}
+
+/* =====================
+   PLATFORMS (DASHBOARD STYLE)
+===================== */
+.platforms {
+  max-width: 1200px;
+  margin: auto;
+  display: grid;
+  gap: 30px;
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 600px) {
+  .platforms {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1000px) {
+  .platforms {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.platform-card {
+  padding: 40px 26px;
+  border-radius: 26px;
+  color: #ffffff;
+  min-height: 280px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: 0.4s;
+  box-shadow: 0 18px 30px rgba(0,0,0,0.25);
+}
+
+.platform-card h3 {
+  font-size: 1.6rem;
+  margin-bottom: 14px;
+}
+
+.platform-card p {
+  font-size: 1rem;
+  line-height: 1.55;
+}
+
+.platform-card span {
+  display: block;
+  margin-top: 14px;
+  font-weight: 700;
+}
+
+.platform-card a {
+  margin-top: 22px;
+  align-self: center;
+  padding: 12px 26px;
+  background: rgba(255,255,255,0.95);
+  color: #111827;
+  font-weight: 700;
+  border-radius: 12px;
+}
+
+.platform-card:hover {
+  transform: translateY(-12px) scale(1.03);
+}
+
+/* Card Colors */
+.reading { background: linear-gradient(135deg, #f97316, #fbbf24); }
+.comprehension { background: linear-gradient(135deg, #10b981, #34d399); }
+.math { background: linear-gradient(135deg, #3b82f6, #60a5fa); }
+.spelling { background: linear-gradient(135deg, #a855f7, #c084fc); }
+
+/* =====================
+   SUBSCRIPTION
+===================== */
+.subscription {
+  background: #ffffff;
+  border-radius: 32px;
+  max-width: 1100px;
+  margin: auto;
+  padding: 70px 6%;
+  text-align: center;
+  box-shadow: 0 20px 45px rgba(0,0,0,0.1);
+}
+
+.subscription h2 {
+  font-size: 2rem;
+  color: #4338ca;
+  margin-bottom: 20px;
+}
+
+.subscription p {
+  font-size: 1.15rem;
+  line-height: 1.6;
+  margin-bottom: 50px;
+}
+
+.subscription span {
+  font-weight: 700;
+  color: #4338ca;
+}
+
+/* WhatsApp Subscription Button */
+.subscription a {
+  background: #25D366;
+  color: white !important;
+  text-decoration: none;
+  padding: 14px 28px;
+  border-radius: 14px;
+  font-weight: 700;
+  display: inline-block;
+  transition: 0.3s;
+}
+
+.subscription a:hover {
+  background: #128C7E;
+}
+
+/* =====================
+   PRICING
+===================== */
+.pricing {
+  display: grid;
+  gap: 30px;
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 700px) {
+  .pricing {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.pricing-card {
+  padding: 40px 30px;
+  border-radius: 26px;
+  background: linear-gradient(135deg, #6366f1, #4f46e5);
+  color: #ffffff;
+  text-align: center;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.25);
+  transition: 0.4s;
+}
+
+.pricing-card h3 {
+  font-size: 1.6rem;
+  margin-bottom: 14px;
+  color: #facc15;
+}
+
+.pricing-card p {
+  line-height: 1.5;
+  margin-bottom: 14px;
+}
+
+.pricing-card a {
+  display: block;
+  margin-top: 20px;
+  padding: 14px 0;
+  background: #facc15;
+  color: #111827;
+  font-weight: 800;
+  border-radius: 12px;
+}
+
+.pricing-card:hover {
+  transform: translateY(-10px);
+}
+
+/* =====================
+   REPORTS
+===================== */
+.reports {
+  max-width: 900px;
+  margin: auto;
+  text-align: center;
+  font-size: 1.15rem;
+  line-height: 1.6;
+}
+
+.reports span {
+  font-weight: 700;
+  color: #4338ca;
+}
+
+/* =====================
+   FOOTER
+===================== */
+footer {
+  background: #0f172a;
+  color: #cbd5f5;
+  padding: 60px 5%;
+  text-align: center;
+}
+
+footer a {
+  color: #facc15;
+  font-weight: 600;
+}
+
+footer a:hover {
+  text-decoration: underline;
+}
+
+/* =====================
+   MOBILE SAFETY
+===================== */
+@media (max-width: 700px) {
+  nav {
+    justify-content: center;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="header-inner">
+    <div class="logo">
+      <img src="logo.png" alt="MathCloud Logo">
+      <span>MathCloud Tutorial 4 – All-in-One Learning Platforms</span>
+    </div>
+    <nav>
+      <a href="#platforms">Platforms</a>
+      <a href="#subscription">Subscribe</a>
+      <a href="#footer">Contact</a>
+    </nav>
+  </div>
+</header>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-content">
+    <h1>Transform Your Child’s Learning Experience</h1>
+    <p>
+      Reading Fluency, Comprehension, Mental Math, Spelling & Vocabulary—all structured activities for 12 months.
+      <span> New grade-level activities from different curricula aligned to global standards are delivered every month.</span>
+    </p>
+    <a href="https://wa.me/234810?text=I%20want%20to%20subscribe%20to%20MathCloud" class="cta">Subscribe Now</a>
+  </div>
+</section>
+
+<!-- STATISTICS -->
+<section class="statistics">
+  <div class="stat-card">
+    <h3>+104</h3>
+    <p>Learners using MathCloud</p>
+  </div>
+  <div class="stat-card">
+    <h3>30</h3>
+    <p>Schools partnered</p>
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section class="testimonials">
+  <h2>What Our Users Say</h2>
+  <div class="testimonial-cards">
+    <div class="testimonial-card">
+      <p>"MathCloud makes reading practice fun and easy!"</p>
+      <span>- Learner 1</span>
+    </div>
+    <div class="testimonial-card">
+      <p>"I improved my mental math speed in just a month."</p>
+      <span>- Learner 2</span>
+    </div>
+    <div class="testimonial-card">
+      <p>"As a parent, I love the detailed monthly progress reports."</p>
+      <span>- Parent 1</span>
+    </div>
+    <div class="testimonial-card">
+      <p>"My child enjoys every lesson and the monthly updates are excellent."</p>
+      <span>- Parent 2</span>
+    </div>
+    <div class="testimonial-card">
+      <p>"Our school curriculum is seamlessly integrated with MathCloud."</p>
+      <span>- School Owner 1</span>
+    </div>
+    <div class="testimonial-card">
+      <p>"Partnering with MathCloud has boosted our students' learning outcomes."</p>
+      <span>- School Owner 2</span>
+    </div>
+  </div>
+</section>
+
+<!-- PLATFORMS -->
+<section class="section" id="platforms">
+  <h2 class="section-title">Learning Platforms</h2>
+  <div class="platforms">
+    <div class="platform-card reading">
+      <h3>Reading Fluency</h3>
+      <p>Interactive exercises improve reading speed, accuracy, and confidence.</p>
+      <span>Updated monthly to global standards</span>
+      <a href="https://wa.me/234810?text=I%20want%20to%20subscribe%20to%20MathCloud">Explore Demo</a>
+    </div>
+
+    <div class="platform-card comprehension">
+      <h3>Comprehension</h3>
+      <p>Guided questions, passage analysis, and games strengthen understanding.</p>
+      <span>New curriculum-aligned exercises monthly</span>
+      <a href="https://wa.me/234810?text=I%20want%20to%20subscribe%20to%20MathCloud">Explore Demo</a>
+    </div>
+
+    <div class="platform-card math">
+      <h3>Mental Math</h3>
+      <p>Timed challenges enhance calculation speed and problem-solving skills.</p>
+      <span>Monthly grade-level challenges</span>
+      <a href="https://wa.me/234810?text=I%20want%20to%20subscribe%20to%20MathCloud">Explore Demo</a>
+    </div>
+
+    <div class="platform-card spelling">
+      <h3>Spelling & Vocabulary</h3>
+      <p>Expand vocabulary and spelling through interactive lessons.</p>
+      <span>International benchmarks applied</span>
+      <a href="https://wa.me/234810?text=I%20want%20to%20subscribe%20to%20MathCloud">Explore Demo</a>
+    </div>
+  </div>
+</section>
+
+<!-- SUBSCRIPTION -->
+<section class="section" id="subscription">
+  <div class="subscription">
+    <h2>Flexible Subscription Plans</h2>
+    <p>
+      Parents receive detailed monthly progress reports and recommendations.
+      <span> Learners receive new grade-level activities every month across all platforms for 12 months.</span>
+    </p>
+
+    <div class="pricing">
+      <div class="pricing-card">
+        <h3>Individual Child</h3>
+        <p>One child, 12 months access with monthly activities and reports.</p>
+        <p><strong>₦50,000</strong></p>
+        <a href="https://wa.me/234810?text=I%20want%20to%20subscribe%20to%20MathCloud">Subscribe via WhatsApp</a>
+      </div>
+
+      <div class="pricing-card">
+        <h3>Family Bundle</h3>
+        <p>Up to 4 children, 12 months each with full access.</p>
+        <p><strong>₦100,000</strong></p>
+        <a href="https://wa.me/234810?text=I%20want%20to%20subscribe%20to%20MathCloud">Subscribe via WhatsApp</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- REPORTS -->
+<section class="section">
+  <div class="reports">
+    Parents receive comprehensive monthly progress reports with actionable recommendations.
+    <span> Every month, learners get curriculum-aligned activities tailored to their grade level and international standards.</span>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer id="footer">
+  <p>&copy; 2026 MathCloud Tutorial 4. All rights reserved.</p>
+  <p>
+    <a href="mailto:support@mathcloud.com">support@mathcloud.com</a> |
+    <a href="#">Privacy Policy</a>
+  </p>
+</footer>
+
+</body>
+</html>

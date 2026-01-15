@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Comprehension Portal</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
+<style>
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:Inter;
+  background:linear-gradient(135deg,#e9f0ff,#f7fbff);
+  color:#1f2937;
+}
+
+/* HEADER */
+header{
+  background:linear-gradient(135deg,#0f172a,#1e3a8a);
+  color:#fff;
+  padding:16px 22px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  box-shadow:0 10px 30px rgba(0,0,0,.3);
+}
+
+/* LAYOUT */
+.container{max-width:1100px;margin:auto;padding:22px}
+.card{
+  background:#fff;
+  border-radius:20px;
+  padding:24px;
+  margin-bottom:20px;
+  box-shadow:0 22px 45px rgba(0,0,0,.14);
+  animation:fadeUp .4s ease;
+}
+.hidden{display:none}
+
+@keyframes fadeUp{
+  from{opacity:0;transform:translateY(20px)}
+  to{opacity:1;transform:none}
+}
+
+/* BUTTONS – TRUE 3D */
+button{
+  border:none;
+  border-radius:16px;
+  padding:14px 22px;
+  font-weight:600;
+  cursor:pointer;
+  transition:.15s;
+  box-shadow:0 7px 0 rgba(0,0,0,.25);
+}
+button:active{
+  transform:translateY(4px);
+  box-shadow:0 3px 0 rgba(0,0,0,.25);
+}
+
+.primary{
+  background:linear-gradient(135deg,#2563eb,#1e40af);
+  color:#fff;
+}
+.secondary{
+  background:linear-gradient(135deg,#6b7280,#374151);
+  color:#fff;
+}
+.danger{
+  background:linear-gradient(135deg,#dc2626,#7f1d1d);
+  color:#fff;
+}
+
+/* INPUTS */
+input{
+  width:100%;
+  padding:14px;
+  margin-bottom:14px;
+  border-radius:14px;
+  border:1px solid #cbd5e1;
+  font-size:15px;
+}
+
+/* COMPREHENSION LIST */
+.comp-item{
+  cursor:pointer;
+  transition:.25s;
+}
+.comp-item:hover{
+  transform:translateY(-6px);
+  box-shadow:0 30px 60px rgba(0,0,0,.18);
+}
+
+/* PASSAGE */
+.passage{
+  background:#eef2ff;
+  padding:20px;
+  border-left:6px solid #2563eb;
+  border-radius:14px;
+  margin:18px 0;
+}
+
+/* PROGRESS */
+.progress{
+  height:14px;
+  background:#e5e7eb;
+  border-radius:10px;
+  overflow:hidden;
+  margin:18px 0;
+}
+.progress div{
+  height:100%;
+  background:linear-gradient(90deg,#2563eb,#38bdf8);
+  transition:.4s;
+}
+
+/* OPTIONS */
+.option{
+  background:#f8fafc;
+  padding:18px;
+  margin:14px 0;
+  border-radius:18px;
+  box-shadow:0 12px 22px rgba(0,0,0,.14);
+  cursor:pointer;
+  transition:.25s;
+}
+.option:hover{transform:scale(1.03)}
+.option.selected{
+  background:linear-gradient(135deg,#2563eb,#1e40af);
+  color:#fff;
+}
+
+/* TABS */
+.tab-bar{
+  display:flex;
+  gap:12px;
+  margin:18px 0;
+}
+.tab-bar button{flex:1}
+
+/* TABLE */
+table{width:100%;border-collapse:collapse}
+th,td{padding:14px;border-bottom:1px solid #e5e7eb}
+th{background:#f1f5f9}
+</style>
+</head>
+
+<body>
+
+<header>
+  <div id="welcome">Comprehension Portal</div>
+  <button id="logoutBtn" class="danger hidden">Logout</button>
+</header>
+
+<div class="container">
+
+<!-- LOGIN -->
+<div id="loginBox" class="card">
+  <h3>Student Login</h3>
+  <input id="email" placeholder="Email">
+  <input id="password" type="password" placeholder="Password">
+  <button class="primary" onclick="login()">Login</button>
+  <p id="loginError" style="color:red"></p>
+</div>
+
+<!-- STUDENT VIEW -->
+<div id="studentView" class="hidden">
+  <div id="list"></div>
+  <div id="viewer" class="hidden"></div>
+</div>
+
+</div>
+
+<script>
+firebase.initializeApp({
+  apiKey:"AIzaSyB4DMYZJHWgbRUZV-uamOy7TpxLM1sGYPY",
+  authDomain:"chats-afcff.firebaseapp.com",
+  databaseURL:"https://chats-afcff-default-rtdb.firebaseio.com",
+  projectId:"chats-afcff"
+});
+
+const auth=firebase.auth();
+const db=firebase.database();
+let userData=null;
+
+/* AUTH */
+function login(){
+  auth.signInWithEmailAndPassword(email.value,password.value)
+    .catch(e=>loginError.textContent=e.message);
+}
+logoutBtn.onclick=()=>auth.signOut();
+
+auth.onAuthStateChanged(async u=>{
+  if(!u){
+    loginBox.classList.remove("hidden");
+    logoutBtn.classList.add("hidden");
+    return;
+  }
+  const s=await db.ref("students/"+u.uid).once("value");
+  userData={id:u.uid,...s.val()};
+  welcome.textContent=`Welcome ${userData.name}`;
+  loginBox.classList.add("hidden");
+  logoutBtn.classList.remove("hidden");
+  loadList();
+});
+
+/* LIST */
+function loadList(){
+  studentView.classList.remove("hidden");
+  list.innerHTML="";
+  db.ref("readingComprehensions").once("value",s=>{
+    s.forEach(c=>{
+      const v=c.val();
+      if(
+        (v.type==="class" && v.target===userData.class) ||
+        (v.type==="student" && v.target===userData.id)
+      ){
+        const d=document.createElement("div");
+        d.className="card comp-item";
+        d.innerHTML=`<h3>${v.title}</h3><small>Open comprehension</small>`;
+        d.onclick=()=>openComp(c.key,v);
+        list.appendChild(d);
+      }
+    });
+  });
+}
+
+/* OPEN COMPREHENSION */
+function openComp(id,data){
+  list.classList.add("hidden");
+  viewer.classList.remove("hidden");
+
+  let index=0;
+  let answers=[];
+  let startTime=Date.now();
+  let view="quiz";
+  const q=data.questions;
+
+  function render(){
+    if(view==="history"){renderHistory();return;}
+
+    const r=q[index];
+    const percent=Math.round((index+1)/q.length*100);
+
+    viewer.innerHTML=`
+      <button onclick="back()">← Back</button>
+      <h2>${data.title}</h2>
+
+      <div class="tab-bar">
+        <button class="primary" onclick="showQuiz()">Questions</button>
+        <button class="secondary" onclick="showHistory()">Attempt History</button>
+      </div>
+
+      <div class="passage">${q[0].Passage}</div>
+      <button class="secondary" onclick="read('${q[0].Passage.replace(/'/g,"")}')">Read Aloud</button>
+
+      <div class="progress"><div style="width:${percent}%"></div></div>
+
+      <strong>Question ${index+1} of ${q.length}</strong>
+      <p>${r.Question}</p>
+
+      ${["A","B","C","D"].map(o=>`
+        <div class="option ${answers[index]?.selected===o?"selected":""}"
+          onclick="select('${o}')">
+          <strong>${o}.</strong> ${r["Option"+o]}
+        </div>
+      `).join("")}
+
+      <button class="primary" onclick="next()">Next</button>
+    `;
+  }
+
+  function submit(){
+    let correct=0;
+
+    const detailed=q.map((r,i)=>{
+      const isCorrect=answers[i].selected===r.CorrectAnswer;
+      if(isCorrect) correct++;
+      return{
+        question:r.Question,
+        options:{
+          A:r.OptionA,
+          B:r.OptionB,
+          C:r.OptionC,
+          D:r.OptionD
+        },
+        selected:answers[i].selected,
+        correct:r.CorrectAnswer,
+        isCorrect
+      };
+    });
+
+    const attempt={
+      time:Date.now(),
+      score:correct,
+      total:q.length,
+      percent:Math.round(correct/q.length*100),
+      duration:Math.floor((Date.now()-startTime)/1000),
+      answers:detailed,
+      analysis:{
+        correctCount:correct,
+        wrongCount:q.length-correct,
+        accuracy:Math.round(correct/q.length*100)
+      }
+    };
+
+    db.ref(`comprehensionResults/${userData.id}/${id}`).push(attempt);
+    alert(`Score: ${correct}/${q.length}`);
+    view="history";
+    render();
+  }
+
+  function renderHistory(){
+    viewer.innerHTML=`
+      <button onclick="back()">← Back</button>
+      <h2>${data.title}</h2>
+      <div id="historyBox">Loading...</div>
+    `;
+    db.ref(`comprehensionResults/${userData.id}/${id}`).once("value",s=>{
+      let h="<table><tr><th>Date</th><th>Score</th><th>%</th><th>Time (s)</th></tr>";
+      if(!s.exists()) h+=`<tr><td colspan="4">No attempts yet</td></tr>`;
+      else s.forEach(a=>{
+        const v=a.val();
+        h+=`
+          <tr>
+            <td>${new Date(v.time).toLocaleString()}</td>
+            <td>${v.score}/${v.total}</td>
+            <td>${v.percent}%</td>
+            <td>${v.duration}</td>
+          </tr>`;
+      });
+      historyBox.innerHTML=h+"</table>";
+    });
+  }
+
+  window.select=o=>{answers[index]={selected:o};render();}
+  window.next=()=>!answers[index]?alert("Select an option"):
+    index===q.length-1?submit():(index++,render());
+  window.back=()=>{viewer.classList.add("hidden");list.classList.remove("hidden");}
+  window.showHistory=()=>{view="history";render();}
+  window.showQuiz=()=>{view="quiz";render();}
+
+  render();
+}
+
+/* READ ALOUD */
+function read(t){
+  speechSynthesis.cancel();
+  speechSynthesis.speak(new SpeechSynthesisUtterance(t));
+}
+</script>
+
+</body>
+</html>

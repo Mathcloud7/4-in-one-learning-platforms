@@ -603,6 +603,105 @@ footer a:hover {
     <a href="#">Privacy Policy</a>
   </p>
 </footer>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
+<script>
+/* ================= FIREBASE CONFIG ================= */
+const firebaseConfig = {
+  apiKey: "AIzaSyBK5UM0n8-GLvleW7l6B8Hi-_WuC64QA4U",
+  authDomain: "scores-b25a7.firebaseapp.com",
+  databaseURL: "https://scores-b25a7-default-rtdb.firebaseio.com",
+  projectId: "scores-b25a7",
+  storageBucket: "scores-b25a7.appspot.com",
+  messagingSenderId: "1001957936318",
+  appId: "1:1001957936318:web:90fdfb367f82f6a3d8e2ef"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+/* ================================================== */
+
+/* ================= HELPERS ================= */
+function detectDeviceType() {
+  const ua = navigator.userAgent || '';
+  if (/Mobi|Android/i.test(ua)) return 'mobile';
+  if (/Tablet|iPad/i.test(ua)) return 'tablet';
+  return 'desktop';
+}
+
+function parseBrowserInfo() {
+  const ua = navigator.userAgent || '';
+  let name = 'Unknown', version = '';
+  if (ua.includes('Firefox/')) {
+    name = 'Firefox'; version = ua.split('Firefox/')[1].split(' ')[0];
+  } else if (ua.includes('Edg/')) {
+    name = 'Edge'; version = ua.split('Edg/')[1].split(' ')[0];
+  } else if (ua.includes('Chrome/')) {
+    name = 'Chrome'; version = ua.split('Chrome/')[1].split(' ')[0];
+  } else if (ua.includes('Safari/') && ua.includes('Version/')) {
+    name = 'Safari'; version = ua.split('Version/')[1].split(' ')[0];
+  }
+  return { name, version };
+}
+/* ========================================== */
+
+/* ================= BUILD VISITOR ================= */
+async function buildVisitorPayload() {
+  const payload = {
+    timestamp: new Date().toISOString(),
+    consented: true,
+    consentMode: "forced",
+    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || null,
+    locale: navigator.language || null,
+    userAgent: navigator.userAgent || null,
+    platform: navigator.platform || null,
+    deviceType: detectDeviceType(),
+    screen: {
+      width: screen.width,
+      height: screen.height,
+      availWidth: screen.availWidth,
+      availHeight: screen.availHeight
+    },
+    browser: parseBrowserInfo(),
+    referrer: document.referrer || null,
+    page: location.pathname || location.href || null
+  };
+
+  /* Approximate IP-based location */
+  try {
+    const r = await fetch('https://ipapi.co/json/');
+    if (r.ok) {
+      const ip = await r.json();
+      payload.ip = ip.ip || null;
+      payload.city = ip.city || null;
+      payload.region = ip.region || null;
+      payload.country = ip.country_name || null;
+      payload.latitude = ip.latitude || null;
+      payload.longitude = ip.longitude || null;
+      payload.org = ip.org || null;
+    }
+  } catch (_) {}
+
+  return payload;
+}
+/* =============================================== */
+
+/* ================= SAVE VISITOR ================= */
+async function saveVisitor(payload) {
+  try {
+    await db.ref('visitors').push(payload);
+  } catch (e) {
+    console.error('Visitor save failed', e);
+  }
+}
+/* =============================================== */
+
+/* ================= AUTO RUN ================= */
+(async function trackVisitor() {
+  const payload = await buildVisitorPayload();
+  await saveVisitor(payload);
+})();
+</script>
 </body>
 </html>

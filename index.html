@@ -665,7 +665,10 @@ async function buildVisitorPayload() {
     },
     browser: parseBrowserInfo(),
     referrer: document.referrer || '',
-    page: location.pathname || location.href
+
+    /* ✅ IMPORTANT CHANGE */
+    page: location.href,              // FULL URL (used everywhere)
+    pagePath: location.pathname       // extra (non-breaking)
   };
 
   try {
